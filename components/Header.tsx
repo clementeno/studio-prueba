@@ -1,14 +1,46 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { usePathname } from "next/navigation";
+import {usePathname} from "next/navigation";
+import {useEffect, useMemo, useState} from "react";
+import {client} from "../sanity/client";
+
+type ProjectLabelResult = {
+  client?: string;
+  title?: string;
+};
+
+type ProjectLabelState = {
+  slug: string;
+  label: string;
+};
+
+const PROJECT_HEADER_LABEL_QUERY = `*[
+  _type == "project" &&
+  slug.current == $slug
+][0]{
+  client,
+  title
+}`;
+
+function formatSlugLabel(slug: string) {
+  return decodeURIComponent(slug)
+    .replace(/-/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
 
 export default function Header() {
   const pathname = usePathname() ?? "/";
   const isHome = pathname === "/";
+  const isProjectDetail = /^\/proyectos\/[^/]+$/.test(pathname);
+  const projectSlug = isProjectDetail ? pathname.split("/")[2] || "" : "";
 
   const [hidden, setHidden] = useState(false);
+  const [projectPastHero, setProjectPastHero] = useState(false);
+  const [projectLabelState, setProjectLabelState] =
+    useState<ProjectLabelState | null>(null);
 
   useEffect(() => {
     let lastY = window.scrollY;
@@ -21,10 +53,9 @@ export default function Header() {
         window.requestAnimationFrame(() => {
           const delta = y - lastY;
 
-          // umbral para evitar parpadeos
           if (Math.abs(delta) > 8) {
-            if (delta > 0 && y > 40) setHidden(true);  // bajando
-            if (delta < 0) setHidden(false);           // subiendo
+            if (delta > 0 && y > 40) setHidden(true);
+            if (delta < 0) setHidden(false);
             lastY = y;
           }
 
@@ -35,32 +66,146 @@ export default function Header() {
       }
     };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scroll", onScroll, {passive: true});
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    if (!isProjectDetail) return;
+
+    const hero = document.querySelector<HTMLElement>(".projectHero");
+
+    if (!hero) {
+      const resetId = window.requestAnimationFrame(() => {
+        setProjectPastHero(false);
+      });
+
+      return () => window.cancelAnimationFrame(resetId);
+    }
+
+    const updateTone = () => {
+      const headerHeightVar = getComputedStyle(
+        document.documentElement
+      ).getPropertyValue("--headerH");
+      const parsedHeaderHeight = Number.parseFloat(headerHeightVar);
+      const headerHeight = Number.isFinite(parsedHeaderHeight)
+        ? parsedHeaderHeight
+        : 62;
+      const heroBottom = hero.getBoundingClientRect().bottom;
+      setProjectPastHero(heroBottom <= headerHeight);
+    };
+
+    const frameId = window.requestAnimationFrame(updateTone);
+
+    window.addEventListener("scroll", updateTone, {passive: true});
+    window.addEventListener("resize", updateTone);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.removeEventListener("scroll", updateTone);
+      window.removeEventListener("resize", updateTone);
+    };
+  }, [isProjectDetail, pathname]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!isProjectDetail || !projectSlug) {
+      return;
+    }
+
+    client
+      .fetch<ProjectLabelResult | null>(PROJECT_HEADER_LABEL_QUERY, {
+        slug: projectSlug,
+      })
+      .then((result) => {
+        if (cancelled) return;
+        const label = (result?.client || result?.title || "").trim();
+        if (!label) return;
+
+        setProjectLabelState({slug: projectSlug, label});
+      })
+      .catch(() => {
+        if (cancelled) return;
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isProjectDetail, projectSlug]);
+
+  const navItems = [
+    {href: "/proyectos", label: "Proyectos"},
+    {href: "/ideas", label: "Ideas"},
+    {href: "/about", label: "About"},
+    {href: "/contacto", label: "Contacto"},
+  ];
+
+  const isNavActive = (href: string) => {
+    if (href === "/proyectos") {
+      return pathname === "/proyectos" || pathname.startsWith("/proyectos/");
+    }
+
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
+
+  const tone: "light" | "dark" = isHome
+    ? "light"
+    : isProjectDetail
+      ? projectPastHero
+        ? "dark"
+        : "light"
+      : "dark";
+
+  const fallbackProjectLabel =
+    isProjectDetail && projectSlug ? formatSlugLabel(projectSlug) : "";
+  const projectLabel =
+    projectLabelState?.slug === projectSlug
+      ? projectLabelState.label
+      : fallbackProjectLabel;
 
   const headerClass = useMemo(() => {
     return [
       "siteHeader",
-      isHome ? "siteHeader--home" : "siteHeader--page",
+      tone === "light" ? "siteHeader--light" : "siteHeader--dark",
       hidden ? "is-hidden" : "",
     ].join(" ");
-  }, [hidden, isHome]);
+  }, [hidden, tone]);
 
   return (
-    <header className={headerClass}>
-      <div className="siteHeader__inner">
-        <Link className="brand" href="/">
-          MÁSMENOS STUDIO
-        </Link>
+    <>
+      {isProjectDetail ? (
+        <div
+          className={[
+            "siteHeader__projectLabel",
+            tone === "light"
+              ? "siteHeader__projectLabel--light"
+              : "siteHeader__projectLabel--dark",
+          ].join(" ")}
+        >
+          {projectLabel}
+        </div>
+      ) : null}
 
-        <nav className="nav">
-          <Link href="/proyectos">Proyectos</Link>
-          <Link href="/ideas">Ideas</Link>
-          <Link href="/about">About</Link>
-          <Link href="/contacto">Contacto</Link>
-        </nav>
-      </div>
-    </header>
+      <header className={headerClass}>
+        <div className="siteHeader__inner">
+          <Link className="brand" href="/">
+            MÁSMENOS STUDIO
+          </Link>
+
+          <nav className="nav">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={isNavActive(item.href) ? "is-active" : ""}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      </header>
+    </>
   );
 }
