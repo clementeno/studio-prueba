@@ -99,12 +99,20 @@ export const projectType = defineType({
       title: "Content Modules (Project Detail)",
       type: "array",
       of: [
+        defineArrayMember({type: "projectMediaRowSection"}),
         defineArrayMember({type: "projectTextSection"}),
         defineArrayMember({type: "projectImageSection"}),
         defineArrayMember({type: "projectVideoSection"}),
         defineArrayMember({type: "projectGallerySection"}),
         defineArrayMember({type: "projectEmbedSection"}),
       ],
+    }),
+    defineField({
+      name: "closingSection",
+      title: "Closing Section (Final Text + Credits)",
+      type: "projectClosingSection",
+      description:
+        "Seccion final en dos columnas: texto largo izquierda y creditos/bloques derecha.",
     }),
   ],
   preview: {

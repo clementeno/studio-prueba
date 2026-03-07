@@ -630,6 +630,64 @@ main,
   border: 0;
 }
 
+.projectRowMediaGrid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.projectRowMediaItem {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.projectRowMediaItem__asset {
+  width: 100%;
+  display: block;
+}
+
+.projectClosing {
+  padding: 12px 30px 58px;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 34px;
+  align-items: start;
+}
+
+.projectClosing__left {
+  margin: 0;
+  white-space: pre-line;
+  font-size: clamp(1.03rem, 0.35vw + 0.95rem, 1.2rem);
+  line-height: 1.36;
+  letter-spacing: -0.006em;
+}
+
+.projectClosing__right {
+  display: grid;
+  gap: 18px;
+}
+
+.projectClosingBlock {
+  display: grid;
+  gap: 4px;
+}
+
+.projectClosingBlock__title {
+  margin: 0;
+  color: #858585;
+  font-size: clamp(0.92rem, 0.14vw + 0.9rem, 1rem);
+  font-weight: 600;
+}
+
+.projectClosingBlock__body {
+  margin: 0;
+  white-space: pre-line;
+  font-size: clamp(0.96rem, 0.16vw + 0.93rem, 1.08rem);
+  line-height: 1.34;
+}
+
 @media (max-width: 980px) {
   .card__overlay {
     grid-template-columns: 1fr 1.7fr;
@@ -650,6 +708,11 @@ main,
 
   .projectContent {
     gap: 28px;
+  }
+
+  .projectClosing {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 24px;
   }
 }
 
@@ -775,5 +838,19 @@ main,
 
   .projectModule__gallery {
     grid-template-columns: 1fr !important;
+  }
+
+  .projectRowMediaGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .projectRowMediaItem {
+    grid-column: 1 / -1 !important;
+  }
+
+  .projectClosing {
+    padding: 8px 16px 34px;
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
 }

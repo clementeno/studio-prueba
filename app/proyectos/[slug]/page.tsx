@@ -50,12 +50,40 @@ type ProjectEmbedModule = ProjectModuleBase & {
   aspectRatio?: string;
 };
 
+type ProjectRowMediaItem = {
+  _key: string;
+  width?: number;
+  alt?: string;
+  caption?: string;
+  imageUrl?: string;
+  mediaFileUrl?: string;
+  mediaFileMimeType?: string;
+};
+
+type ProjectMediaRowModule = ProjectModuleBase & {
+  _type: "projectMediaRowSection";
+  title?: string;
+  items?: ProjectRowMediaItem[];
+};
+
 type ProjectModule =
+  | ProjectMediaRowModule
   | ProjectTextModule
   | ProjectImageModule
   | ProjectVideoModule
   | ProjectGalleryModule
   | ProjectEmbedModule;
+
+type ProjectClosingBlock = {
+  _key: string;
+  title?: string;
+  body?: string;
+};
+
+type ProjectClosingSection = {
+  leftText?: string;
+  rightBlocks?: ProjectClosingBlock[];
+};
 
 type Project = {
   client?: string;
@@ -66,6 +94,7 @@ type Project = {
   coverColor?: string;
   coverImageUrl?: string;
   contentModules?: ProjectModule[];
+  closingSection?: ProjectClosingSection;
 };
 
 const PROJECT_BY_SLUG_QUERY = `*[
@@ -79,6 +108,14 @@ const PROJECT_BY_SLUG_QUERY = `*[
   "tags": coalesce(tags, []),
   coverColor,
   "coverImageUrl": coverImage.asset->url,
+  "closingSection": closingSection{
+    leftText,
+    "rightBlocks": coalesce(rightBlocks[]{
+      _key,
+      title,
+      body
+    }, [])
+  },
   "contentModules": coalesce(contentModules[]{
     _type,
     _key,
@@ -96,6 +133,17 @@ const PROJECT_BY_SLUG_QUERY = `*[
     alt,
     "videoFileUrl": videoFile.asset->url,
     "imageUrl": image.asset->url,
+    "mediaFileUrl": mediaFile.asset->url,
+    "mediaFileMimeType": mediaFile.asset->mimeType,
+    "items": items[]{
+      _key,
+      width,
+      alt,
+      caption,
+      "imageUrl": image.asset->url,
+      "mediaFileUrl": mediaFile.asset->url,
+      "mediaFileMimeType": mediaFile.asset->mimeType
+    },
     "images": images[]{
       _key,
       alt,
@@ -151,7 +199,86 @@ function normalizeAspectRatio(value?: string) {
   return value.replace("/", " / ");
 }
 
+function getMediaKind(item: ProjectRowMediaItem) {
+  const mime = (item.mediaFileMimeType || "").toLowerCase();
+  const url = (item.mediaFileUrl || "").toLowerCase();
+
+  if (mime.startsWith("video/")) return "video";
+  if (mime.startsWith("image/")) return "image";
+
+  if (url.endsWith(".mp4") || url.endsWith(".webm") || url.endsWith(".mov")) return "video";
+  if (url.endsWith(".gif")) return "image";
+
+  return null;
+}
+
+function renderRowMedia(item: ProjectRowMediaItem) {
+  const mediaKind = getMediaKind(item);
+
+  if (mediaKind === "video" && item.mediaFileUrl) {
+    return (
+      <video
+        className="projectRowMediaItem__asset"
+        src={item.mediaFileUrl}
+        controls
+        playsInline
+        preload="metadata"
+      />
+    );
+  }
+
+  if (mediaKind === "image" && item.mediaFileUrl) {
+    return (
+      <img
+        className="projectRowMediaItem__asset"
+        src={item.mediaFileUrl}
+        alt={item.alt || item.caption || ""}
+        loading="lazy"
+      />
+    );
+  }
+
+  if (item.imageUrl) {
+    return (
+      <img
+        className="projectRowMediaItem__asset"
+        src={`${item.imageUrl}?w=2000&fit=max&auto=format`}
+        alt={item.alt || item.caption || ""}
+        loading="lazy"
+      />
+    );
+  }
+
+  return null;
+}
+
 function renderProjectModule(module: ProjectModule) {
+  if (module._type === "projectMediaRowSection") {
+    return (
+      <section key={module._key} className="projectModule projectModule--mediaRow">
+        {module.title ? <h2 className="projectModule__heading">{module.title}</h2> : null}
+        <div className="projectRowMediaGrid">
+          {(module.items || []).map((item) => {
+            const width = Math.min(Math.max(item.width || 12, 1), 12);
+
+            return (
+              <figure
+                key={item._key}
+                className="projectRowMediaItem"
+                style={{gridColumn: `span ${width}`}}
+              >
+                {renderRowMedia(item)}
+                {item.caption ? (
+                  <figcaption className="projectModule__caption">{item.caption}</figcaption>
+                ) : null}
+              </figure>
+            );
+          })}
+        </div>
+      </section>
+    );
+  }
+
   if (module._type === "projectTextSection") {
     return (
       <section key={module._key} className="projectModule projectModule--text projectModule--narrow">
@@ -224,7 +351,9 @@ function renderProjectModule(module: ProjectModule) {
                   loading="lazy"
                 />
               ) : null}
-              {item.caption ? <figcaption className="projectModule__caption">{item.caption}</figcaption> : null}
+              {item.caption ? (
+                <figcaption className="projectModule__caption">{item.caption}</figcaption>
+              ) : null}
             </figure>
           ))}
         </div>
@@ -317,6 +446,21 @@ export default async function ProjectPage({
 
       {project.contentModules && project.contentModules.length > 0 ? (
         <section className="projectContent">{project.contentModules.map(renderProjectModule)}</section>
+      ) : null}
+
+      {project.closingSection?.leftText ||
+      (project.closingSection?.rightBlocks && project.closingSection.rightBlocks.length > 0) ? (
+        <section className="projectClosing">
+          <div className="projectClosing__left">{project.closingSection?.leftText}</div>
+          <div className="projectClosing__right">
+            {(project.closingSection?.rightBlocks || []).map((block) => (
+              <section key={block._key} className="projectClosingBlock">
+                <h2 className="projectClosingBlock__title">{block.title}</h2>
+                <p className="projectClosingBlock__body">{block.body}</p>
+              </section>
+            ))}
+          </div>
+        </section>
       ) : null}
     </div>
   );
