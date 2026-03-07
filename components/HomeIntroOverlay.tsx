@@ -2,11 +2,11 @@
 
 import {useEffect, useMemo, useState} from "react";
 
-const INTRO_STORAGE_KEY = "home_intro_seen_v2";
-const START_DELAY_MS = 420;
-const TYPE_INTERVAL_MS = 118;
-const HOLD_AFTER_TYPING_MS = 1300;
-const FADE_OUT_MS = 900;
+const INTRO_STORAGE_KEY = "home_intro_seen_v3";
+const TOTAL_DURATION_MS = 2800;
+const START_DELAY_MS = 220;
+const HOLD_AFTER_TYPING_MS = 650;
+const FADE_OUT_MS = 700;
 
 export default function HomeIntroOverlay() {
   const fullText = useMemo(() => "MÁS / MENOS / STUDIO", []);
@@ -26,6 +26,13 @@ export default function HomeIntroOverlay() {
       return;
     }
 
+    const typingWindowMs =
+      TOTAL_DURATION_MS - START_DELAY_MS - HOLD_AFTER_TYPING_MS - FADE_OUT_MS;
+    const typingIntervalMs = Math.max(
+      45,
+      Math.floor(typingWindowMs / Math.max(fullText.length, 1))
+    );
+
     setVisible(true);
     window.sessionStorage.setItem(INTRO_STORAGE_KEY, "1");
 
@@ -43,7 +50,7 @@ export default function HomeIntroOverlay() {
             finishTimer = window.setTimeout(() => setVisible(false), FADE_OUT_MS);
           }, HOLD_AFTER_TYPING_MS);
         }
-      }, TYPE_INTERVAL_MS);
+      }, typingIntervalMs);
     }, START_DELAY_MS);
 
     return () => {

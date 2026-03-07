@@ -68,7 +68,7 @@ main,
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transition: opacity 900ms cubic-bezier(0.22, 1, 0.36, 1), visibility 900ms ease;
+  transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1), visibility 700ms ease;
 }
 
 .homeIntro.is-closing {
@@ -87,7 +87,7 @@ main,
   white-space: nowrap;
   text-shadow: 0 0 26px rgba(255, 255, 255, 0.17);
   transform: translateY(0);
-  transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .homeIntro.is-closing .homeIntro__text {

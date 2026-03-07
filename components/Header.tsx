@@ -31,8 +31,23 @@ function formatSlugLabel(slug: string) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function normalizePathname(path: string) {
+  if (!path) return "/";
+
+  const clean = path.split("?")[0]?.split("#")[0] || "/";
+  if (clean.length > 1 && clean.endsWith("/")) {
+    return clean.slice(0, -1);
+  }
+
+  return clean;
+}
+
 export default function Header() {
-  const pathname = usePathname() ?? "/";
+  const routerPathname = usePathname();
+  const [clientPathname, setClientPathname] = useState<string | null>(() =>
+    typeof window !== "undefined" ? normalizePathname(window.location.pathname) : null
+  );
+  const pathname = normalizePathname(clientPathname || routerPathname || "/");
   const isHome = pathname === "/";
   const isProjectDetail = /^\/proyectos\/[^/]+$/.test(pathname);
   const projectSlug = isProjectDetail ? pathname.split("/")[2] || "" : "";
@@ -41,6 +56,16 @@ export default function Header() {
   const [projectPastHero, setProjectPastHero] = useState(false);
   const [projectLabelState, setProjectLabelState] =
     useState<ProjectLabelState | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setClientPathname(normalizePathname(window.location.pathname));
+  }, []);
+
+  useEffect(() => {
+    if (!routerPathname) return;
+    setClientPathname(normalizePathname(routerPathname));
+  }, [routerPathname]);
 
   useEffect(() => {
     let lastY = window.scrollY;
