@@ -80,6 +80,12 @@ export const projectType = defineType({
       of: [defineArrayMember({type: "string"})],
     }),
     defineField({
+      name: "sector",
+      title: "Sector",
+      type: "string",
+      description: "Ej: Civic et public, Cultural, Tech, etc.",
+    }),
+    defineField({
       name: "tags",
       title: "Tags",
       type: "array",

@@ -90,6 +90,7 @@ type Project = {
   title?: string;
   summary?: string;
   services?: string[];
+  sector?: string;
   tags?: string[];
   coverColor?: string;
   coverImageUrl?: string;
@@ -105,6 +106,7 @@ const PROJECT_BY_SLUG_QUERY = `*[
   title,
   summary,
   "services": coalesce(services, []),
+  sector,
   "tags": coalesce(tags, []),
   coverColor,
   "coverImageUrl": coverImage.asset->url,
@@ -417,32 +419,40 @@ export default async function ProjectPage({
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
-      >
-        <div className="projectHero__overlay">
-          <span className="projectHero__client">{project.client}</span>
-          <h1 className="projectHero__title">{project.title}</h1>
-          <p className="projectHero__summary">{project.summary}</p>
+      />
+
+      <section className="projectInfoGrid">
+        <div className="projectInfoBlock projectInfoBlock--client">
+          <h2 className="projectInfoLabel">Client</h2>
+          <p className="projectInfoValue">{project.client || project.title || "Sin cliente"}</p>
+        </div>
+        <div className="projectInfoBlock projectInfoBlock--services">
+          <h2 className="projectInfoLabel">Services</h2>
+          <div className="projectInfoValue projectInfoValue--stack">
+            {(project.services || []).length > 0 ? (
+              (project.services || []).map((service) => (
+                <p key={service} className="projectInfoLine">
+                  {service}
+                </p>
+              ))
+            ) : (
+              <p className="projectInfoLine">Sin servicios</p>
+            )}
+          </div>
+        </div>
+        <div className="projectInfoBlock projectInfoBlock--sector">
+          <h2 className="projectInfoLabel">Sector</h2>
+          <p className="projectInfoValue">
+            {project.sector || (project.tags || []).join(" · ") || "Sin sector"}
+          </p>
         </div>
       </section>
 
-      <section className="projectMeta">
-        <div className="projectMeta__block">
-          <h2 className="projectMeta__label">Servicios</h2>
-          <p className="projectMeta__text">
-            {(project.services || []).join(" / ") || "Sin servicios"}
-          </p>
-        </div>
-        <div className="projectMeta__block">
-          <h2 className="projectMeta__label">Tags</h2>
-          <div className="projectMeta__tags">
-            {(project.tags || []).map((tag) => (
-              <span key={tag} className="projectTag">
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
+      {project.summary ? (
+        <section className="projectLead">
+          <p className="projectLead__text">{project.summary}</p>
+        </section>
+      ) : null}
 
       {project.contentModules && project.contentModules.length > 0 ? (
         <section className="projectContent">{project.contentModules.map(renderProjectModule)}</section>
