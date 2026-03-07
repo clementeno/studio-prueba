@@ -1,12 +1,276 @@
-import { notFound } from "next/navigation";
-import { projects } from "../../../data/projects";
+import {notFound} from "next/navigation";
+import {client} from "../../../sanity/client";
 
-export default function ProjectPage({
+type ProjectModuleBase = {
+  _type: string;
+  _key: string;
+};
+
+type ProjectTextModule = ProjectModuleBase & {
+  _type: "projectTextSection";
+  heading?: string;
+  body?: string;
+};
+
+type ProjectImageModule = ProjectModuleBase & {
+  _type: "projectImageSection";
+  imageUrl?: string;
+  alt?: string;
+  caption?: string;
+  width?: "full" | "narrow";
+};
+
+type ProjectVideoModule = ProjectModuleBase & {
+  _type: "projectVideoSection";
+  videoFileUrl?: string;
+  videoUrl?: string;
+  caption?: string;
+  autoplay?: boolean;
+  loop?: boolean;
+};
+
+type ProjectGalleryImage = {
+  _key: string;
+  imageUrl?: string;
+  alt?: string;
+  caption?: string;
+};
+
+type ProjectGalleryModule = ProjectModuleBase & {
+  _type: "projectGallerySection";
+  title?: string;
+  columns?: number;
+  images?: ProjectGalleryImage[];
+};
+
+type ProjectEmbedModule = ProjectModuleBase & {
+  _type: "projectEmbedSection";
+  title?: string;
+  embedUrl?: string;
+  aspectRatio?: string;
+};
+
+type ProjectModule =
+  | ProjectTextModule
+  | ProjectImageModule
+  | ProjectVideoModule
+  | ProjectGalleryModule
+  | ProjectEmbedModule;
+
+type Project = {
+  client?: string;
+  title?: string;
+  summary?: string;
+  services?: string[];
+  tags?: string[];
+  coverColor?: string;
+  coverImageUrl?: string;
+  contentModules?: ProjectModule[];
+};
+
+const PROJECT_BY_SLUG_QUERY = `*[
+  _type == "project" &&
+  slug.current == $slug
+][0]{
+  client,
+  title,
+  summary,
+  "services": coalesce(services, []),
+  "tags": coalesce(tags, []),
+  coverColor,
+  "coverImageUrl": coverImage.asset->url,
+  "contentModules": coalesce(contentModules[]{
+    _type,
+    _key,
+    heading,
+    body,
+    caption,
+    width,
+    title,
+    embedUrl,
+    aspectRatio,
+    videoUrl,
+    autoplay,
+    loop,
+    columns,
+    alt,
+    "videoFileUrl": videoFile.asset->url,
+    "imageUrl": image.asset->url,
+    "images": images[]{
+      _key,
+      alt,
+      caption,
+      "imageUrl": image.asset->url
+    }
+  }, [])
+}`;
+
+const PROJECT_SLUGS_QUERY = `*[
+  _type == "project" &&
+  defined(slug.current)
+]{
+  "slug": slug.current
+}`;
+
+export const revalidate = 30;
+
+export async function generateStaticParams() {
+  return client.fetch<{slug: string}[]>(PROJECT_SLUGS_QUERY, {}, {next: {revalidate}});
+}
+
+function toEmbedUrl(rawUrl?: string) {
+  if (!rawUrl) return "";
+
+  try {
+    const url = new URL(rawUrl);
+    const host = url.hostname.replace(/^www\./, "");
+
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      const videoId = url.searchParams.get("v");
+      if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+    }
+
+    if (host === "youtu.be") {
+      const videoId = url.pathname.replace(/^\//, "");
+      if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+    }
+
+    if (host === "vimeo.com") {
+      const videoId = url.pathname.split("/").filter(Boolean)[0];
+      if (videoId) return `https://player.vimeo.com/video/${videoId}`;
+    }
+
+    return rawUrl;
+  } catch {
+    return rawUrl;
+  }
+}
+
+function normalizeAspectRatio(value?: string) {
+  if (!value) return "16 / 9";
+  return value.replace("/", " / ");
+}
+
+function renderProjectModule(module: ProjectModule) {
+  if (module._type === "projectTextSection") {
+    return (
+      <section key={module._key} className="projectModule projectModule--text projectModule--narrow">
+        {module.heading ? <h2 className="projectModule__heading">{module.heading}</h2> : null}
+        {module.body ? <p className="projectModule__text">{module.body}</p> : null}
+      </section>
+    );
+  }
+
+  if (module._type === "projectImageSection") {
+    return (
+      <section
+        key={module._key}
+        className={`projectModule projectModule--image ${
+          module.width === "narrow" ? "projectModule--narrow" : ""
+        }`}
+      >
+        {module.imageUrl ? (
+          <img
+            className="projectModule__image"
+            src={`${module.imageUrl}?w=2200&fit=max&auto=format`}
+            alt={module.alt || module.caption || ""}
+            loading="lazy"
+          />
+        ) : null}
+        {module.caption ? <p className="projectModule__caption">{module.caption}</p> : null}
+      </section>
+    );
+  }
+
+  if (module._type === "projectVideoSection") {
+    const videoSrc = module.videoFileUrl || module.videoUrl || "";
+
+    return (
+      <section key={module._key} className="projectModule projectModule--video">
+        {videoSrc ? (
+          <video
+            className="projectModule__video"
+            src={videoSrc}
+            controls
+            autoPlay={Boolean(module.autoplay)}
+            loop={Boolean(module.loop)}
+            muted={Boolean(module.autoplay)}
+            playsInline
+            preload="metadata"
+          />
+        ) : null}
+        {module.caption ? <p className="projectModule__caption">{module.caption}</p> : null}
+      </section>
+    );
+  }
+
+  if (module._type === "projectGallerySection") {
+    const columns = Math.min(Math.max(module.columns || 2, 2), 4);
+
+    return (
+      <section key={module._key} className="projectModule projectModule--gallery">
+        {module.title ? <h2 className="projectModule__heading">{module.title}</h2> : null}
+        <div
+          className="projectModule__gallery"
+          style={{gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`}}
+        >
+          {(module.images || []).map((item) => (
+            <figure key={item._key} className="projectModule__galleryItem">
+              {item.imageUrl ? (
+                <img
+                  className="projectModule__image"
+                  src={`${item.imageUrl}?w=1500&fit=max&auto=format`}
+                  alt={item.alt || item.caption || ""}
+                  loading="lazy"
+                />
+              ) : null}
+              {item.caption ? <figcaption className="projectModule__caption">{item.caption}</figcaption> : null}
+            </figure>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  if (module._type === "projectEmbedSection") {
+    const embedUrl = toEmbedUrl(module.embedUrl);
+
+    return (
+      <section key={module._key} className="projectModule projectModule--embed">
+        {module.title ? <h2 className="projectModule__heading">{module.title}</h2> : null}
+        {embedUrl ? (
+          <div
+            className="projectModule__embed"
+            style={{aspectRatio: normalizeAspectRatio(module.aspectRatio)}}
+          >
+            <iframe
+              src={embedUrl}
+              title={module.title || "Embedded media"}
+              loading="lazy"
+              allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        ) : null}
+      </section>
+    );
+  }
+
+  return null;
+}
+
+export default async function ProjectPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{slug: string}>;
 }) {
-  const project = projects.find((item) => item.slug === params.slug);
+  const {slug} = await params;
+
+  const project = await client.fetch<Project | null>(
+    PROJECT_BY_SLUG_QUERY,
+    {slug},
+    {next: {revalidate}}
+  );
 
   if (!project) {
     notFound();
@@ -18,8 +282,8 @@ export default function ProjectPage({
         className="projectHero"
         style={{
           background: project.coverColor || "#e9e9e9",
-          backgroundImage: project.coverImage
-            ? `url(${project.coverImage.src})`
+          backgroundImage: project.coverImageUrl
+            ? `url(${project.coverImageUrl}?w=2200&fit=max&auto=format)`
             : undefined,
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -35,12 +299,14 @@ export default function ProjectPage({
       <section className="projectMeta">
         <div className="projectMeta__block">
           <h2 className="projectMeta__label">Servicios</h2>
-          <p className="projectMeta__text">{project.services.join(" / ")}</p>
+          <p className="projectMeta__text">
+            {(project.services || []).join(" / ") || "Sin servicios"}
+          </p>
         </div>
         <div className="projectMeta__block">
           <h2 className="projectMeta__label">Tags</h2>
           <div className="projectMeta__tags">
-            {project.tags.map((tag) => (
+            {(project.tags || []).map((tag) => (
               <span key={tag} className="projectTag">
                 {tag}
               </span>
@@ -48,6 +314,10 @@ export default function ProjectPage({
           </div>
         </div>
       </section>
+
+      {project.contentModules && project.contentModules.length > 0 ? (
+        <section className="projectContent">{project.contentModules.map(renderProjectModule)}</section>
+      ) : null}
     </div>
   );
 }

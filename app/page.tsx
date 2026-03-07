@@ -12,7 +12,26 @@ type HomeProject = {
   coverImageUrl?: string;
 };
 
-const HOME_FEATURED_QUERY = `*[
+type HomePageSettings = {
+  featuredProjects?: HomeProject[];
+};
+
+const HOME_PAGE_QUERY = `*[
+  _type == "homePage"
+][0]{
+  "featuredProjects": featuredProjects[]->{
+    _id,
+    "slug": slug.current,
+    client,
+    summary,
+    tags,
+    services,
+    coverColor,
+    "coverImageUrl": coverImage.asset->url
+  }
+}`;
+
+const HOME_FALLBACK_QUERY = `*[
   _type == "project" &&
   featured == true &&
   defined(slug.current)
@@ -28,11 +47,23 @@ const HOME_FEATURED_QUERY = `*[
 }`;
 
 export default async function HomePage() {
-  const featured = await client.fetch<HomeProject[]>(
-    HOME_FEATURED_QUERY,
-    {},
-    {next: {revalidate: 30}}
-  );
+  const [homeSettings, fallbackFeatured] = await Promise.all([
+    client.fetch<HomePageSettings | null>(
+      HOME_PAGE_QUERY,
+      {},
+      {next: {revalidate: 30}}
+    ),
+    client.fetch<HomeProject[]>(
+      HOME_FALLBACK_QUERY,
+      {},
+      {next: {revalidate: 30}}
+    ),
+  ]);
+
+  const featured =
+    homeSettings?.featuredProjects && homeSettings.featuredProjects.length > 0
+      ? homeSettings.featuredProjects
+      : fallbackFeatured;
 
   return (
     <div className="page page--home">
