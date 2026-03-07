@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 
 export default function Header() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
   const isHome = pathname === "/";
 
   const [hidden, setHidden] = useState(false);
