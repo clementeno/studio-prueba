@@ -25,10 +25,12 @@ export const projectType = defineType({
       type: "string",
     }),
     defineField({
-      name: "summary",
-      title: "Summary",
+      name: "homeSummary",
+      title: "Home Summary",
       type: "text",
       rows: 3,
+      description:
+        "Texto breve SOLO para cards del Home. No se usa en Proyectos ni en detalle.",
     }),
     defineField({
       name: "hoverDetail",
@@ -61,7 +63,7 @@ export const projectType = defineType({
       title: "Preview Media (Video/GIF)",
       type: "file",
       description:
-        "Opcional. Si existe, reemplaza coverImage en la galeria (Casos/Archivos). Soporta video y GIF.",
+        "Opcional para cards (reemplaza coverImage). Recomendado: 1200x900 px. Video ideal <= 4 MB (4-8s, sin audio). GIF ideal <= 6 MB.",
       options: {
         accept: "video/*,image/gif",
       },
@@ -99,7 +101,30 @@ export const projectType = defineType({
     }),
     defineField({name: "featuredOrder", title: "Featured Order", type: "number"}),
     defineField({name: "coverColor", title: "Cover Color", type: "string"}),
-    defineField({name: "coverImage", title: "Cover Image", type: "image", options: {hotspot: true}}),
+    defineField({
+      name: "coverImage",
+      title: "Cover Image",
+      type: "image",
+      description:
+        "Imagen principal de Home/Detalle. Recomendado: 3200x1800 px (16:9). Ideal <= 1.5 MB.",
+      options: {hotspot: true},
+    }),
+    defineField({
+      name: "heroPosition",
+      title: "Hero Position",
+      type: "string",
+      description: "Controla el recorte de la imagen principal en detalle.",
+      options: {
+        list: [
+          {title: "Center", value: "center center"},
+          {title: "Top", value: "center top"},
+          {title: "Bottom", value: "center bottom"},
+          {title: "Left", value: "left center"},
+          {title: "Right", value: "right center"},
+        ],
+      },
+      initialValue: "center center",
+    }),
     defineField({
       name: "contentModules",
       title: "Content Modules (Project Detail)",

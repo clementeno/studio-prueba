@@ -17,15 +17,30 @@ export const projectTextSectionType = defineType({
       rows: 8,
       validation: (rule) => rule.required(),
     }),
+    defineField({
+      name: "textWidth",
+      title: "Text Width",
+      type: "string",
+      options: {
+        list: [
+          {title: "Full width", value: "full"},
+          {title: "Half width", value: "half"},
+        ],
+      },
+      initialValue: "full",
+    }),
   ],
   preview: {
     select: {
       title: "heading",
       body: "body",
+      textWidth: "textWidth",
     },
-    prepare: ({title, body}) => ({
+    prepare: ({title, body, textWidth}) => ({
       title: title || "Text Section",
-      subtitle: body ? String(body).slice(0, 80) : "Sin texto",
+      subtitle: `${textWidth === "half" ? "Half" : "Full"} · ${
+        body ? String(body).slice(0, 70) : "Sin texto"
+      }`,
     }),
   },
 });

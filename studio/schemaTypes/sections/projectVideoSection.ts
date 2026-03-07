@@ -9,6 +9,8 @@ export const projectVideoSectionType = defineType({
       name: "videoFile",
       title: "Video File",
       type: "file",
+      description:
+        "Recomendado: 1920x1080 px (16:9), codec H.264/H.265. Ideal <= 25 MB.",
       options: {
         accept: "video/*",
       },

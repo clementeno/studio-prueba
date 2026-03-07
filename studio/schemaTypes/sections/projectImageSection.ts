@@ -9,6 +9,8 @@ export const projectImageSectionType = defineType({
       name: "image",
       title: "Image",
       type: "image",
+      description:
+        "Recomendado: Full 2800x1800 px, Narrow 1800x1200 px. Ideal <= 1.2 MB.",
       options: {hotspot: true},
       validation: (rule) => rule.required(),
     }),
