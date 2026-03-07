@@ -10,6 +10,7 @@ type ProjectTextModule = ProjectModuleBase & {
   _type: "projectTextSection";
   heading?: string;
   body?: string;
+  textWidth?: "full" | "half";
 };
 
 type ProjectImageModule = ProjectModuleBase & {
@@ -88,12 +89,12 @@ type ProjectClosingSection = {
 type Project = {
   client?: string;
   title?: string;
-  summary?: string;
   services?: string[];
   sector?: string;
   tags?: string[];
   coverColor?: string;
   coverImageUrl?: string;
+  heroPosition?: string;
   contentModules?: ProjectModule[];
   closingSection?: ProjectClosingSection;
 };
@@ -104,12 +105,12 @@ const PROJECT_BY_SLUG_QUERY = `*[
 ][0]{
   client,
   title,
-  summary,
   "services": coalesce(services, []),
   sector,
   "tags": coalesce(tags, []),
   coverColor,
   "coverImageUrl": coverImage.asset->url,
+  heroPosition,
   "closingSection": closingSection{
     leftText,
     "rightBlocks": coalesce(rightBlocks[]{
@@ -123,6 +124,7 @@ const PROJECT_BY_SLUG_QUERY = `*[
     _key,
     heading,
     body,
+    textWidth,
     caption,
     width,
     title,
@@ -282,8 +284,14 @@ function renderProjectModule(module: ProjectModule) {
   }
 
   if (module._type === "projectTextSection") {
+    const textWidthClass =
+      module.textWidth === "half" ? "projectModule--half" : "projectModule--full";
+
     return (
-      <section key={module._key} className="projectModule projectModule--text projectModule--narrow">
+      <section
+        key={module._key}
+        className={`projectModule projectModule--text ${textWidthClass}`}
+      >
         {module.heading ? <h2 className="projectModule__heading">{module.heading}</h2> : null}
         {module.body ? <p className="projectModule__text">{module.body}</p> : null}
       </section>
@@ -414,10 +422,10 @@ export default async function ProjectPage({
         style={{
           background: project.coverColor || "#e9e9e9",
           backgroundImage: project.coverImageUrl
-            ? `url(${project.coverImageUrl}?w=2200&fit=max&auto=format)`
+            ? `url(${project.coverImageUrl}?w=3200&h=1800&fit=crop&crop=center&auto=format&q=82)`
             : undefined,
           backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundPosition: project.heroPosition || "center center",
         }}
       />
 
@@ -447,12 +455,6 @@ export default async function ProjectPage({
           </p>
         </div>
       </section>
-
-      {project.summary ? (
-        <section className="projectLead">
-          <p className="projectLead__text">{project.summary}</p>
-        </section>
-      ) : null}
 
       {project.contentModules && project.contentModules.length > 0 ? (
         <section className="projectContent">{project.contentModules.map(renderProjectModule)}</section>

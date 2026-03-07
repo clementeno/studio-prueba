@@ -52,6 +52,81 @@ main,
   margin: 0 !important;
 }
 
+.homeIntro {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.08), transparent 36%),
+    radial-gradient(circle at 85% 75%, rgba(255, 255, 255, 0.05), transparent 42%),
+    #000;
+  color: #fff;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 900ms cubic-bezier(0.22, 1, 0.36, 1), visibility 900ms ease;
+}
+
+.homeIntro.is-closing {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.homeIntro__text {
+  margin: 0;
+  font-size: clamp(1.35rem, 3.8vw, 3.35rem);
+  line-height: 1.08;
+  font-weight: 650;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow: 0 0 26px rgba(255, 255, 255, 0.17);
+  transform: translateY(0);
+  transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.homeIntro.is-closing .homeIntro__text {
+  transform: translateY(-14px);
+}
+
+.homeIntro__cursor {
+  display: inline-block;
+  width: 0.095em;
+  height: 0.95em;
+  margin-left: 0.14em;
+  background: currentColor;
+  vertical-align: -0.1em;
+  animation: homeIntroBlink 920ms steps(1, end) infinite;
+}
+
+@keyframes homeIntroBlink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .homeIntro,
+  .homeIntro.is-closing {
+    transition: none;
+  }
+
+  .homeIntro__text,
+  .homeIntro.is-closing .homeIntro__text {
+    transition: none;
+    transform: none;
+  }
+
+  .homeIntro__cursor {
+    animation: none;
+  }
+}
+
 .siteHeader {
   position: fixed;
   top: 0;
@@ -485,7 +560,9 @@ main,
 
 .projectHero {
   position: relative;
-  min-height: 78svh;
+  aspect-ratio: 16 / 9;
+  min-height: clamp(500px, 78svh, 980px);
+  max-height: 100svh;
 }
 
 .projectInfoGrid {
@@ -537,18 +614,6 @@ main,
   line-height: 1.25;
 }
 
-.projectLead {
-  padding: 0 30px 34px;
-}
-
-.projectLead__text {
-  margin: 0;
-  font-size: clamp(2.2rem, 3.6vw + 1.4rem, 4.65rem);
-  line-height: 0.97;
-  letter-spacing: -0.02em;
-  max-width: 16ch;
-}
-
 .projectContent {
   padding: 8px 30px 56px;
   display: grid;
@@ -562,6 +627,14 @@ main,
 
 .projectModule--narrow {
   max-width: 860px;
+}
+
+.projectModule--full {
+  max-width: none;
+}
+
+.projectModule--half {
+  max-width: min(100%, 50%);
 }
 
 .projectModule__heading {
@@ -804,7 +877,9 @@ main,
   }
 
   .projectHero {
-    min-height: 72svh;
+    aspect-ratio: auto;
+    min-height: 62svh;
+    max-height: none;
   }
 
   .projectInfoGrid {
@@ -819,18 +894,13 @@ main,
     grid-column: auto;
   }
 
-  .projectLead {
-    padding: 0 16px 24px;
-  }
-
-  .projectLead__text {
-    font-size: clamp(1.7rem, 7.3vw, 2.8rem);
-    max-width: 100%;
-  }
-
   .projectContent {
     padding: 8px 16px 34px;
     gap: 22px;
+  }
+
+  .projectModule--half {
+    max-width: 100%;
   }
 
   .projectModule__image,

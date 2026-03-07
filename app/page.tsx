@@ -1,11 +1,12 @@
 import Link from "next/link";
 import {client} from "../sanity/client";
+import HomeIntroOverlay from "../components/HomeIntroOverlay";
 
 type HomeProject = {
   _id: string;
   slug: string;
   client?: string;
-  summary?: string;
+  homeSummary?: string;
   tags?: string[];
   services?: string[];
   coverColor?: string;
@@ -23,7 +24,7 @@ const HOME_PAGE_QUERY = `*[
     _id,
     "slug": slug.current,
     client,
-    summary,
+    "homeSummary": coalesce(homeSummary, summary),
     tags,
     services,
     coverColor,
@@ -39,7 +40,7 @@ const HOME_FALLBACK_QUERY = `*[
   _id,
   "slug": slug.current,
   client,
-  summary,
+  "homeSummary": coalesce(homeSummary, summary),
   tags,
   services,
   coverColor,
@@ -67,6 +68,7 @@ export default async function HomePage() {
 
   return (
     <div className="page page--home">
+      <HomeIntroOverlay />
       <div className="grid">
         {featured.map((p) => (
           <Link key={p._id} className="card" href={`/proyectos/${p.slug}`}>
@@ -82,7 +84,7 @@ export default async function HomePage() {
               <div className="card__overlay">
                 <div className="card__client">{p.client}</div>
                 <div className="card__center">
-                  <div className="card__summary">{p.summary}</div>
+                  <div className="card__summary">{p.homeSummary}</div>
                   <div className="card__tags">
                     {(p.tags || []).map((tag) => (
                       <span className="card__tag" key={tag}>

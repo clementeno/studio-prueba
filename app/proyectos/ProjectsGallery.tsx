@@ -13,7 +13,6 @@ export type GalleryProject = {
   _id: string;
   title?: string;
   slug?: string;
-  summary?: string;
   hoverDetail?: string;
   categories?: ProjectCategory[];
   legacyArchiveCategories?: string[];
@@ -251,7 +250,7 @@ export default function ProjectsGallery({
         <div className="casesGrid">
           {projects.map((project) => {
             const slug = project.slug || "";
-            const detail = project.hoverDetail || project.summary || "";
+            const detail = project.hoverDetail || "";
 
             return (
               <Link key={project._id} href={`/proyectos/${slug}`} className="casesCard">

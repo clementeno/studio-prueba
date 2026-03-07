@@ -11,7 +11,6 @@ const PROJECTS_QUERY = `*[
   _id,
   title,
   "slug": slug.current,
-  summary,
   hoverDetail,
   "categories": coalesce(categories[]->{
     title,
