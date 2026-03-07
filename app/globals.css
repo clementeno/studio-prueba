@@ -12,11 +12,16 @@ body {
 }
 
 :root {
+  /* Tip: rem = tamaño relativo al font-size raíz (html). Si html=16px, 1rem=16px, 2rem=32px. */
+  /* Ajustes globales de tipografía: */
+  /* - --font-size-meta: textos secundarios (cliente, servicios, footer, etc.) */
+  /* - --font-size-summary: texto principal grande en cards del Home */
+  /* - --font-size-h1: títulos de páginas internas (.h1) */
   --headerH: 62px;
   --font-size-nav: clamp(0.95rem, 0.35vw + 0.88rem, 1.08rem);
   --font-size-meta: clamp(0.86rem, 0.28vw + 0.8rem, 1rem);
   --font-size-body: clamp(1.02rem, 0.35vw + 0.95rem, 1.16rem);
-  --font-size-summary: clamp(1.9rem, 1.8vw + 1.4rem, 3.45rem);
+  --font-size-summary: clamp(1.9rem, 1.8vw + 1.0rem, 2.45rem);
   --font-size-h1: clamp(2.05rem, 2.3vw + 1.25rem, 4rem);
   --line-height-body: 1.62;
   --line-height-summary: 1.12;
@@ -188,6 +193,7 @@ main,
 }
 
 .card__client {
+  /* Home: nombre de cliente (columna izquierda de cada card) */
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: var(--font-size-meta);
@@ -201,6 +207,7 @@ main,
 }
 
 .card__summary {
+  /* Home: texto principal grande de cada proyecto */
   font-size: var(--font-size-summary);
   line-height: var(--line-height-summary);
   max-width: 32ch;
@@ -214,6 +221,7 @@ main,
 }
 
 .card__tag {
+  /* Home: chips de tags */
   display: inline-flex;
   align-items: center;
   border: 1px solid rgba(255, 255, 255, 0.65);
@@ -226,6 +234,7 @@ main,
 }
 
 .card__services {
+  /* Home: lista de servicios (columna derecha) */
   text-align: right;
   font-size: var(--font-size-meta);
   opacity: 0.95;
