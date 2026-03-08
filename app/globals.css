@@ -533,6 +533,7 @@ body[data-header-tone="dark"] .siteHeader__projectLabel {
   grid-template-columns: 1fr;
   gap: 0;
   margin: 0;
+  padding-bottom: 64px; /* o 80px / 120px */
 }
 
 .card {
@@ -630,7 +631,7 @@ body[data-header-tone="dark"] .siteHeader__projectLabel {
 }
 
 .projectsPage {
-  padding-top: calc(var(--headerH) + 22px);
+  padding-top: calc(var(--headerH) + 52px);
 }
 
 .projectsGallery {
