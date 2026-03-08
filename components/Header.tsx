@@ -46,7 +46,7 @@ export default function Header() {
   const routerPathname = usePathname();
   const runtimePathname =
     typeof window !== "undefined" ? normalizePathname(window.location.pathname) : "";
-  const pathname = normalizePathname(runtimePathname || routerPathname || "/");
+  const pathname = normalizePathname(runtimePathname || routerPathname || "__pending__");
   const isHome = pathname === "/";
   const isProjectDetail = /^\/proyectos\/[^/]+$/.test(pathname);
   const projectSlug = isProjectDetail ? pathname.split("/")[2] || "" : "";

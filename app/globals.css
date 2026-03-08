@@ -289,8 +289,6 @@ main,
 
 .aboutSplit__leftCol {
   grid-column: 1 / span 2;
-  display: flex;
-  flex-direction: column;
   align-self: stretch;
 }
 
@@ -340,8 +338,6 @@ main,
 
 .aboutSplit__rightCol {
   grid-column: 3 / span 2;
-  display: flex;
-  flex-direction: column;
   align-self: stretch;
 }
 
@@ -352,16 +348,15 @@ main,
   width: 100%;
 }
 
-.aboutModule--split--sticky-left .aboutSplit__leftCol {
-  justify-content: flex-end;
+.aboutSplit__tail {
+  display: grid;
+  gap: 12px;
 }
 
-.aboutModule--split--sticky-right .aboutSplit__rightCol {
-  justify-content: flex-end;
-}
-
-.aboutModule--split--sticky-left .aboutSplit__leftSticky,
-.aboutModule--split--sticky-right .aboutSplit__rightSticky {
+.aboutModule--split--sticky-left .aboutSplit__leftSticky.is-sticky-full,
+.aboutModule--split--sticky-right .aboutSplit__rightSticky.is-sticky-full,
+.aboutModule--split--sticky-left .aboutSplit__leftTail.is-sticky-tail,
+.aboutModule--split--sticky-right .aboutSplit__rightTail.is-sticky-tail {
   position: sticky;
   top: calc(var(--headerH) + 18px);
 }
@@ -991,8 +986,10 @@ main,
     gap: 22px;
   }
 
-  .aboutModule--split--sticky-left .aboutSplit__leftSticky,
-  .aboutModule--split--sticky-right .aboutSplit__rightSticky {
+  .aboutModule--split--sticky-left .aboutSplit__leftSticky.is-sticky-full,
+  .aboutModule--split--sticky-right .aboutSplit__rightSticky.is-sticky-full,
+  .aboutModule--split--sticky-left .aboutSplit__leftTail.is-sticky-tail,
+  .aboutModule--split--sticky-right .aboutSplit__rightTail.is-sticky-tail {
     top: calc(var(--headerH) + 14px);
   }
 
@@ -1093,7 +1090,6 @@ main,
   .aboutSplit__leftCol,
   .aboutSplit__rightCol {
     grid-column: 1 / -1;
-    display: block;
   }
 
   .aboutSplit__leftSticky {
@@ -1104,6 +1100,13 @@ main,
   .aboutSplit__rightSticky {
     position: static;
     gap: 14px;
+  }
+
+  .aboutSplit__leftTail.is-sticky-tail,
+  .aboutSplit__rightTail.is-sticky-tail,
+  .aboutSplit__leftSticky.is-sticky-full,
+  .aboutSplit__rightSticky.is-sticky-full {
+    position: static;
   }
 
   .aboutSplit__leftBody {

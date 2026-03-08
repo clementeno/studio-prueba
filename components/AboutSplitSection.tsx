@@ -65,6 +65,15 @@ export default function AboutSplitSection({module}: {module: AboutSplitModule}) 
   const rightRef = useRef<HTMLDivElement | null>(null);
   const [stickySide, setStickySide] = useState<StickySide>("none");
 
+  const hasLeftMedia = Boolean(
+    (module.leftMediaFileUrl && leftMediaKind) || (!module.leftMediaFileUrl && module.leftImageUrl)
+  );
+  const hasRightMedia = Boolean(
+    (module.rightMediaFileUrl && rightMediaKind) || (!module.rightMediaFileUrl && module.rightImageUrl)
+  );
+  const hasLeftTail = hasLeftMedia || Boolean(module.leftCredits);
+  const hasRightTail = hasRightMedia;
+
   useEffect(() => {
     const left = leftRef.current;
     const right = rightRef.current;
@@ -153,7 +162,12 @@ export default function AboutSplitSection({module}: {module: AboutSplitModule}) 
       ].join(" ")}
     >
       <div className="aboutSplit__leftCol">
-        <div ref={leftRef} className="aboutSplit__leftSticky">
+        <div
+          ref={leftRef}
+          className={`aboutSplit__leftSticky ${
+            stickySide === "left" && !hasLeftTail ? "is-sticky-full" : ""
+          }`}
+        >
           {module.leftTitle ? <h2 className="aboutSplit__sectionTitle">{module.leftTitle}</h2> : null}
 
           {leftParagraphs.length > 0 ? (
@@ -166,79 +180,62 @@ export default function AboutSplitSection({module}: {module: AboutSplitModule}) 
             </div>
           ) : null}
 
-          {module.leftMediaFileUrl && leftMediaKind === "video" ? (
-            <video
-              className={`aboutSplit__media aboutSplit__media--${module.leftMediaFit || "cover"}`}
-              src={module.leftMediaFileUrl}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-            />
-          ) : null}
+          {hasLeftTail ? (
+            <div
+              className={`aboutSplit__tail aboutSplit__leftTail ${
+                stickySide === "left" ? "is-sticky-tail" : ""
+              }`}
+            >
+              {module.leftMediaFileUrl && leftMediaKind === "video" ? (
+                <video
+                  className={`aboutSplit__media aboutSplit__media--${module.leftMediaFit || "cover"}`}
+                  src={module.leftMediaFileUrl}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                />
+              ) : null}
 
-          {module.leftMediaFileUrl && leftMediaKind === "image" ? (
-            <img
-              className={`aboutSplit__media aboutSplit__media--${module.leftMediaFit || "cover"}`}
-              src={module.leftMediaFileUrl}
-              alt={module.leftMediaAlt || ""}
-              loading="lazy"
-            />
-          ) : null}
+              {module.leftMediaFileUrl && leftMediaKind === "image" ? (
+                <img
+                  className={`aboutSplit__media aboutSplit__media--${module.leftMediaFit || "cover"}`}
+                  src={module.leftMediaFileUrl}
+                  alt={module.leftMediaAlt || ""}
+                  loading="lazy"
+                />
+              ) : null}
 
-          {!module.leftMediaFileUrl && module.leftImageUrl ? (
-            <img
-              className={`aboutSplit__media aboutSplit__media--${module.leftMediaFit || "cover"}`}
-              src={`${module.leftImageUrl}?w=2200&fit=max&auto=format`}
-              alt={module.leftMediaAlt || ""}
-              loading="lazy"
-            />
-          ) : null}
+              {!module.leftMediaFileUrl && module.leftImageUrl ? (
+                <img
+                  className={`aboutSplit__media aboutSplit__media--${module.leftMediaFit || "cover"}`}
+                  src={`${module.leftImageUrl}?w=2200&fit=max&auto=format`}
+                  alt={module.leftMediaAlt || ""}
+                  loading="lazy"
+                />
+              ) : null}
 
-          {module.leftCredits ? (
-            <div className="aboutSplit__creditsWrap">
-              <h3 className="aboutSplit__metaLabel">Créditos</h3>
-              <p className="aboutSplit__credits">{module.leftCredits}</p>
+              {module.leftCredits ? (
+                <div className="aboutSplit__creditsWrap">
+                  <h3 className="aboutSplit__metaLabel">Créditos</h3>
+                  <p className="aboutSplit__credits">{module.leftCredits}</p>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>
       </div>
 
       <div className="aboutSplit__rightCol">
-        <div ref={rightRef} className="aboutSplit__rightSticky">
+        <div
+          ref={rightRef}
+          className={`aboutSplit__rightSticky ${
+            stickySide === "right" && !hasRightTail ? "is-sticky-full" : ""
+          }`}
+        >
           {module.rightTitle ? (
             <h2 className="aboutSplit__sectionTitle">{module.rightTitle}</h2>
-          ) : null}
-
-          {module.rightMediaFileUrl && rightMediaKind === "video" ? (
-            <video
-              className={`aboutSplit__media aboutSplit__media--${module.rightMediaFit || "cover"}`}
-              src={module.rightMediaFileUrl}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-            />
-          ) : null}
-
-          {module.rightMediaFileUrl && rightMediaKind === "image" ? (
-            <img
-              className={`aboutSplit__media aboutSplit__media--${module.rightMediaFit || "cover"}`}
-              src={module.rightMediaFileUrl}
-              alt={module.rightMediaAlt || ""}
-              loading="lazy"
-            />
-          ) : null}
-
-          {!module.rightMediaFileUrl && module.rightImageUrl ? (
-            <img
-              className={`aboutSplit__media aboutSplit__media--${module.rightMediaFit || "cover"}`}
-              src={`${module.rightImageUrl}?w=2200&fit=max&auto=format`}
-              alt={module.rightMediaAlt || ""}
-              loading="lazy"
-            />
           ) : null}
 
           {rightParagraphs.map((paragraph, index) => (
@@ -246,6 +243,44 @@ export default function AboutSplitSection({module}: {module: AboutSplitModule}) 
               {paragraph}
             </p>
           ))}
+
+          {hasRightTail ? (
+            <div
+              className={`aboutSplit__tail aboutSplit__rightTail ${
+                stickySide === "right" ? "is-sticky-tail" : ""
+              }`}
+            >
+              {module.rightMediaFileUrl && rightMediaKind === "video" ? (
+                <video
+                  className={`aboutSplit__media aboutSplit__media--${module.rightMediaFit || "cover"}`}
+                  src={module.rightMediaFileUrl}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                />
+              ) : null}
+
+              {module.rightMediaFileUrl && rightMediaKind === "image" ? (
+                <img
+                  className={`aboutSplit__media aboutSplit__media--${module.rightMediaFit || "cover"}`}
+                  src={module.rightMediaFileUrl}
+                  alt={module.rightMediaAlt || ""}
+                  loading="lazy"
+                />
+              ) : null}
+
+              {!module.rightMediaFileUrl && module.rightImageUrl ? (
+                <img
+                  className={`aboutSplit__media aboutSplit__media--${module.rightMediaFit || "cover"}`}
+                  src={`${module.rightImageUrl}?w=2200&fit=max&auto=format`}
+                  alt={module.rightMediaAlt || ""}
+                  loading="lazy"
+                />
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </div>
     </section>
