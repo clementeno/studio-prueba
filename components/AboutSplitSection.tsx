@@ -44,7 +44,7 @@ function getMediaKind(mimeType?: string, mediaUrl?: string) {
 
 function getStickySide(leftHeight: number, rightHeight: number) {
   const difference = Math.abs(leftHeight - rightHeight);
-  if (difference < 20) return "none";
+  if (difference < 1) return "none";
 
   return leftHeight < rightHeight ? "left" : "right";
 }
@@ -81,8 +81,8 @@ export default function AboutSplitSection({module}: {module: AboutSplitModule}) 
           return;
         }
 
-        const leftHeight = left.getBoundingClientRect().height;
-        const rightHeight = right.getBoundingClientRect().height;
+        const leftHeight = left.offsetHeight;
+        const rightHeight = right.offsetHeight;
         const nextSide = getStickySide(leftHeight, rightHeight);
 
         setStickySide((previous) => (previous === nextSide ? previous : nextSide));
@@ -90,6 +90,12 @@ export default function AboutSplitSection({module}: {module: AboutSplitModule}) 
     };
 
     measure();
+    const delayedMeasureId = window.setTimeout(measure, 220);
+
+    if ("fonts" in document) {
+      // Recalcula después de cargar fuentes para evitar alturas inestables.
+      document.fonts.ready.then(() => measure()).catch(() => {});
+    }
 
     const resizeObserver = new ResizeObserver(() => measure());
     resizeObserver.observe(left);
@@ -100,13 +106,22 @@ export default function AboutSplitSection({module}: {module: AboutSplitModule}) 
 
     const mediaQuery = window.matchMedia("(max-width: 760px)");
     const onMediaChange = () => measure();
-    mediaQuery.addEventListener("change", onMediaChange);
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", onMediaChange);
+    } else {
+      mediaQuery.addListener(onMediaChange);
+    }
 
     return () => {
       if (rafId) window.cancelAnimationFrame(rafId);
       resizeObserver.disconnect();
       window.removeEventListener("resize", onResize);
-      mediaQuery.removeEventListener("change", onMediaChange);
+      window.clearTimeout(delayedMeasureId);
+      if (typeof mediaQuery.removeEventListener === "function") {
+        mediaQuery.removeEventListener("change", onMediaChange);
+      } else {
+        mediaQuery.removeListener(onMediaChange);
+      }
     };
   }, []);
 
