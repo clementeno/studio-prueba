@@ -1,4 +1,5 @@
 import {client} from "../../sanity/client";
+import AboutSplitSection from "../../components/AboutSplitSection";
 
 type AboutSplitModule = {
   _type: "aboutSplitSection";
@@ -73,13 +74,6 @@ const ABOUT_PAGE_QUERY = `*[
 
 export const revalidate = 30;
 
-function splitParagraphs(value?: string) {
-  return String(value || "")
-    .split(/\n{2,}/)
-    .map((line) => line.trim())
-    .filter(Boolean);
-}
-
 function getMediaKind(mimeType?: string, mediaUrl?: string) {
   const mime = (mimeType || "").toLowerCase();
   const url = (mediaUrl || "").toLowerCase();
@@ -112,129 +106,7 @@ export default async function AboutPage() {
 
       {modules.map((module) => {
         if (module._type === "aboutSplitSection") {
-          const leftParagraphs = splitParagraphs(module.leftBody);
-          const rightParagraphs = splitParagraphs(module.rightBody);
-          const leftMediaKind = getMediaKind(
-            module.leftMediaFileMimeType,
-            module.leftMediaFileUrl
-          );
-          const rightMediaKind = getMediaKind(
-            module.rightMediaFileMimeType,
-            module.rightMediaFileUrl
-          );
-
-          return (
-            <section key={module._key} className="aboutModule aboutModule--split">
-              <div className="aboutSplit__leftCol">
-                <div className="aboutSplit__leftSticky">
-                  {module.leftTitle ? (
-                    <h2 className="aboutSplit__sectionTitle">{module.leftTitle}</h2>
-                  ) : null}
-
-                  {leftParagraphs.length > 0 ? (
-                    <div className="aboutSplit__leftBody">
-                      {leftParagraphs.map((paragraph, index) => (
-                        <p key={`${module._key}-left-${index}`} className="aboutSplit__lead">
-                          {paragraph}
-                        </p>
-                      ))}
-                    </div>
-                  ) : null}
-
-                  {module.leftMediaFileUrl && leftMediaKind === "video" ? (
-                    <video
-                      className={`aboutSplit__media aboutSplit__media--${
-                        module.leftMediaFit || "cover"
-                      }`}
-                      src={module.leftMediaFileUrl}
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                      preload="metadata"
-                    />
-                  ) : null}
-
-                  {module.leftMediaFileUrl && leftMediaKind === "image" ? (
-                    <img
-                      className={`aboutSplit__media aboutSplit__media--${
-                        module.leftMediaFit || "cover"
-                      }`}
-                      src={module.leftMediaFileUrl}
-                      alt={module.leftMediaAlt || ""}
-                      loading="lazy"
-                    />
-                  ) : null}
-
-                  {!module.leftMediaFileUrl && module.leftImageUrl ? (
-                    <img
-                      className={`aboutSplit__media aboutSplit__media--${
-                        module.leftMediaFit || "cover"
-                      }`}
-                      src={`${module.leftImageUrl}?w=2200&fit=max&auto=format`}
-                      alt={module.leftMediaAlt || ""}
-                      loading="lazy"
-                    />
-                  ) : null}
-
-                  {module.leftCredits ? (
-                    <div className="aboutSplit__creditsWrap">
-                      <h3 className="aboutSplit__metaLabel">Créditos</h3>
-                      <p className="aboutSplit__credits">{module.leftCredits}</p>
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="aboutSplit__rightCol">
-                {module.rightTitle ? (
-                  <h2 className="aboutSplit__sectionTitle">{module.rightTitle}</h2>
-                ) : null}
-
-                {module.rightMediaFileUrl && rightMediaKind === "video" ? (
-                  <video
-                    className={`aboutSplit__media aboutSplit__media--${
-                      module.rightMediaFit || "cover"
-                    }`}
-                    src={module.rightMediaFileUrl}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                  />
-                ) : null}
-
-                {module.rightMediaFileUrl && rightMediaKind === "image" ? (
-                  <img
-                    className={`aboutSplit__media aboutSplit__media--${
-                      module.rightMediaFit || "cover"
-                    }`}
-                    src={module.rightMediaFileUrl}
-                    alt={module.rightMediaAlt || ""}
-                    loading="lazy"
-                  />
-                ) : null}
-
-                {!module.rightMediaFileUrl && module.rightImageUrl ? (
-                  <img
-                    className={`aboutSplit__media aboutSplit__media--${
-                      module.rightMediaFit || "cover"
-                    }`}
-                    src={`${module.rightImageUrl}?w=2200&fit=max&auto=format`}
-                    alt={module.rightMediaAlt || ""}
-                    loading="lazy"
-                  />
-                ) : null}
-
-                {rightParagraphs.map((paragraph, index) => (
-                  <p key={`${module._key}-right-${index}`} className="aboutSplit__body">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-            </section>
-          );
+          return <AboutSplitSection key={module._key} module={module} />;
         }
 
         if (module._type === "aboutFullMediaSection") {
