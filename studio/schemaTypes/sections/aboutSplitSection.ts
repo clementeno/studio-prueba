@@ -16,7 +16,6 @@ export const aboutSplitSectionType = defineType({
       type: "text",
       rows: 10,
       description: "Texto principal grande en la columna izquierda.",
-      validation: (rule) => rule.required(),
     }),
     defineField({
       name: "leftCredits",
@@ -24,6 +23,41 @@ export const aboutSplitSectionType = defineType({
       type: "text",
       rows: 10,
       description: "Créditos o lista (respeta saltos de línea).",
+    }),
+    defineField({
+      name: "leftImage",
+      title: "Left Image",
+      type: "image",
+      description:
+        "Imagen para columna izquierda. Recomendado: 1800x2400 px o 1600x2000 px. Ideal <= 1.3 MB.",
+      options: {hotspot: true},
+    }),
+    defineField({
+      name: "leftMediaFile",
+      title: "Left Media File (Video/GIF)",
+      type: "file",
+      description:
+        "Opcional para loop visual. Recomendado: 1080x1350 px. Video ideal <= 5 MB (6-12s, sin audio). GIF ideal <= 8 MB.",
+      options: {
+        accept: "video/*,image/gif",
+      },
+    }),
+    defineField({
+      name: "leftMediaAlt",
+      title: "Left Media Alt",
+      type: "string",
+    }),
+    defineField({
+      name: "leftMediaFit",
+      title: "Left Media Fit",
+      type: "string",
+      options: {
+        list: [
+          {title: "Cover", value: "cover"},
+          {title: "Contain", value: "contain"},
+        ],
+      },
+      initialValue: "cover",
     }),
     defineField({
       name: "rightTitle",
@@ -77,10 +111,20 @@ export const aboutSplitSectionType = defineType({
     rule.custom((value) => {
       if (!value) return true;
 
+      const hasLeftContent =
+        Boolean(value.leftBody && String(value.leftBody).trim()) ||
+        Boolean(value.leftCredits && String(value.leftCredits).trim()) ||
+        Boolean(value.leftImage) ||
+        Boolean(value.leftMediaFile);
+
       const hasRightContent =
         Boolean(value.rightBody && String(value.rightBody).trim()) ||
         Boolean(value.rightImage) ||
         Boolean(value.rightMediaFile);
+
+      if (!hasLeftContent) {
+        return "Agrega contenido en la columna izquierda (texto, créditos, imagen o media).";
+      }
 
       if (!hasRightContent) {
         return "Agrega contenido en la columna derecha (texto, imagen o media).";
@@ -92,7 +136,7 @@ export const aboutSplitSectionType = defineType({
     select: {
       leftTitle: "leftTitle",
       leftBody: "leftBody",
-      media: "rightImage",
+      media: "leftImage",
     },
     prepare: ({leftTitle, leftBody, media}) => ({
       title: leftTitle || "About Split Section",

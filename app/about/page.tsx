@@ -6,6 +6,11 @@ type AboutSplitModule = {
   leftTitle?: string;
   leftBody?: string;
   leftCredits?: string;
+  leftImageUrl?: string;
+  leftMediaFileUrl?: string;
+  leftMediaFileMimeType?: string;
+  leftMediaAlt?: string;
+  leftMediaFit?: "cover" | "contain";
   rightTitle?: string;
   rightBody?: string;
   rightImageUrl?: string;
@@ -44,6 +49,8 @@ const ABOUT_PAGE_QUERY = `*[
     leftTitle,
     leftBody,
     leftCredits,
+    leftMediaAlt,
+    leftMediaFit,
     rightTitle,
     rightBody,
     rightMediaAlt,
@@ -52,6 +59,9 @@ const ABOUT_PAGE_QUERY = `*[
     caption,
     alt,
     aspectRatio,
+    "leftImageUrl": leftImage.asset->url,
+    "leftMediaFileUrl": leftMediaFile.asset->url,
+    "leftMediaFileMimeType": leftMediaFile.asset->mimeType,
     "rightImageUrl": rightImage.asset->url,
     "rightMediaFileUrl": rightMediaFile.asset->url,
     "rightMediaFileMimeType": rightMediaFile.asset->mimeType,
@@ -102,6 +112,12 @@ export default async function AboutPage() {
 
       {modules.map((module) => {
         if (module._type === "aboutSplitSection") {
+          const leftParagraphs = splitParagraphs(module.leftBody);
+          const rightParagraphs = splitParagraphs(module.rightBody);
+          const leftMediaKind = getMediaKind(
+            module.leftMediaFileMimeType,
+            module.leftMediaFileUrl
+          );
           const rightMediaKind = getMediaKind(
             module.rightMediaFileMimeType,
             module.rightMediaFileUrl
@@ -115,13 +131,51 @@ export default async function AboutPage() {
                     <h2 className="aboutSplit__sectionTitle">{module.leftTitle}</h2>
                   ) : null}
 
-                  <div className="aboutSplit__leftBody">
-                    {splitParagraphs(module.leftBody).map((paragraph, index) => (
-                      <p key={`${module._key}-left-${index}`} className="aboutSplit__lead">
-                        {paragraph}
-                      </p>
-                    ))}
-                  </div>
+                  {leftParagraphs.length > 0 ? (
+                    <div className="aboutSplit__leftBody">
+                      {leftParagraphs.map((paragraph, index) => (
+                        <p key={`${module._key}-left-${index}`} className="aboutSplit__lead">
+                          {paragraph}
+                        </p>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {module.leftMediaFileUrl && leftMediaKind === "video" ? (
+                    <video
+                      className={`aboutSplit__media aboutSplit__media--${
+                        module.leftMediaFit || "cover"
+                      }`}
+                      src={module.leftMediaFileUrl}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      preload="metadata"
+                    />
+                  ) : null}
+
+                  {module.leftMediaFileUrl && leftMediaKind === "image" ? (
+                    <img
+                      className={`aboutSplit__media aboutSplit__media--${
+                        module.leftMediaFit || "cover"
+                      }`}
+                      src={module.leftMediaFileUrl}
+                      alt={module.leftMediaAlt || ""}
+                      loading="lazy"
+                    />
+                  ) : null}
+
+                  {!module.leftMediaFileUrl && module.leftImageUrl ? (
+                    <img
+                      className={`aboutSplit__media aboutSplit__media--${
+                        module.leftMediaFit || "cover"
+                      }`}
+                      src={`${module.leftImageUrl}?w=2200&fit=max&auto=format`}
+                      alt={module.leftMediaAlt || ""}
+                      loading="lazy"
+                    />
+                  ) : null}
 
                   {module.leftCredits ? (
                     <div className="aboutSplit__creditsWrap">
@@ -173,7 +227,7 @@ export default async function AboutPage() {
                   />
                 ) : null}
 
-                {splitParagraphs(module.rightBody).map((paragraph, index) => (
+                {rightParagraphs.map((paragraph, index) => (
                   <p key={`${module._key}-right-${index}`} className="aboutSplit__body">
                     {paragraph}
                   </p>
