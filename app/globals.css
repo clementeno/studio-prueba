@@ -289,12 +289,15 @@ main,
 
 .aboutSplit__leftCol {
   grid-column: 1 / span 2;
+  display: flex;
+  flex-direction: column;
   align-self: stretch;
 }
 
 .aboutSplit__leftSticky {
   display: grid;
   gap: 22px;
+  width: 100%;
 }
 
 .aboutSplit__leftBody {
@@ -337,7 +340,8 @@ main,
 
 .aboutSplit__rightCol {
   grid-column: 3 / span 2;
-  display: block;
+  display: flex;
+  flex-direction: column;
   align-self: stretch;
 }
 
@@ -345,6 +349,15 @@ main,
   display: grid;
   gap: 14px;
   align-content: start;
+  width: 100%;
+}
+
+.aboutModule--split--sticky-left .aboutSplit__leftCol {
+  justify-content: flex-end;
+}
+
+.aboutModule--split--sticky-right .aboutSplit__rightCol {
+  justify-content: flex-end;
 }
 
 .aboutModule--split--sticky-left .aboutSplit__leftSticky,
@@ -1080,6 +1093,7 @@ main,
   .aboutSplit__leftCol,
   .aboutSplit__rightCol {
     grid-column: 1 / -1;
+    display: block;
   }
 
   .aboutSplit__leftSticky {
