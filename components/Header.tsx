@@ -44,12 +44,21 @@ function normalizePathname(path: string) {
 
 export default function Header() {
   const routerPathname = usePathname();
-  const runtimePathname =
-    typeof window !== "undefined" ? normalizePathname(window.location.pathname) : "";
-  const pathname = normalizePathname(runtimePathname || routerPathname || "__pending__");
+  const pathname = normalizePathname(routerPathname || "/");
   const isHome = pathname === "/";
   const isProjectDetail = /^\/proyectos\/[^/]+$/.test(pathname);
   const projectSlug = isProjectDetail ? pathname.split("/")[2] || "" : "";
+  const pageTheme = isProjectDetail
+    ? "project-detail"
+    : pathname === "/proyectos"
+      ? "projects"
+      : pathname === "/about"
+        ? "about"
+        : pathname === "/contacto"
+          ? "contacto"
+          : isHome
+            ? "home"
+            : "default";
 
   const [hidden, setHidden] = useState(false);
   const [projectPastHero, setProjectPastHero] = useState(false);
@@ -122,6 +131,10 @@ export default function Header() {
   }, [isProjectDetail, pathname]);
 
   useEffect(() => {
+    document.body.dataset.pageTheme = pageTheme;
+  }, [pageTheme]);
+
+  useEffect(() => {
     let cancelled = false;
 
     if (!isProjectDetail || !projectSlug) {
@@ -169,6 +182,10 @@ export default function Header() {
         ? "dark"
         : "light"
       : "dark";
+
+  useEffect(() => {
+    document.body.dataset.headerTone = tone;
+  }, [tone]);
 
   const fallbackProjectLabel =
     isProjectDetail && projectSlug ? formatSlugLabel(projectSlug) : "";

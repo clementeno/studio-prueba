@@ -1,6 +1,6 @@
 "use client";
 
-import {useEffect, useMemo, useRef, useState} from "react";
+import {useEffect, useMemo, useRef} from "react";
 
 type AboutSplitModule = {
   _key: string;
@@ -23,6 +23,12 @@ type AboutSplitModule = {
 
 type StickySide = "left" | "right" | "none";
 
+type StickyMetrics = {
+  side: StickySide;
+  start: number;
+  maxShift: number;
+};
+
 function splitParagraphs(value?: string) {
   return String(value || "")
     .split(/\n{2,}/)
@@ -44,9 +50,17 @@ function getMediaKind(mimeType?: string, mediaUrl?: string) {
 
 function getStickySide(leftHeight: number, rightHeight: number) {
   const difference = Math.abs(leftHeight - rightHeight);
-  if (difference < 1) return "none";
+  if (difference < 2) return "none";
 
   return leftHeight < rightHeight ? "left" : "right";
+}
+
+function getStickyTopOffset() {
+  const headerHeightVar = getComputedStyle(document.documentElement).getPropertyValue("--headerH");
+  const parsedHeaderHeight = Number.parseFloat(headerHeightVar);
+  const headerHeight = Number.isFinite(parsedHeaderHeight) ? parsedHeaderHeight : 62;
+
+  return headerHeight + 18;
 }
 
 export default function AboutSplitSection({module}: {module: AboutSplitModule}) {
@@ -61,40 +75,77 @@ export default function AboutSplitSection({module}: {module: AboutSplitModule}) 
     [module.rightMediaFileMimeType, module.rightMediaFileUrl]
   );
 
+  const sectionRef = useRef<HTMLElement | null>(null);
   const leftRef = useRef<HTMLDivElement | null>(null);
   const rightRef = useRef<HTMLDivElement | null>(null);
-  const [stickySide, setStickySide] = useState<StickySide>("none");
-
-  const hasLeftMedia = Boolean(
-    (module.leftMediaFileUrl && leftMediaKind) || (!module.leftMediaFileUrl && module.leftImageUrl)
-  );
-  const hasRightMedia = Boolean(
-    (module.rightMediaFileUrl && rightMediaKind) || (!module.rightMediaFileUrl && module.rightImageUrl)
-  );
-  const hasLeftTail = hasLeftMedia || Boolean(module.leftCredits);
-  const hasRightTail = hasRightMedia;
+  const metricsRef = useRef<StickyMetrics>({side: "none", start: 0, maxShift: 0});
 
   useEffect(() => {
+    const section = sectionRef.current;
     const left = leftRef.current;
     const right = rightRef.current;
-    if (!left || !right) return;
+    if (!section || !left || !right) return;
 
-    let rafId = 0;
+    let measureRafId = 0;
+    let scrollRafId = 0;
+
+    const resetTransforms = () => {
+      left.style.transform = "";
+      right.style.transform = "";
+      section.dataset.stickySide = "none";
+    };
+
+    const applyShift = () => {
+      const metrics = metricsRef.current;
+
+      if (metrics.side === "none" || window.matchMedia("(max-width: 760px)").matches) {
+        resetTransforms();
+        return;
+      }
+
+      const y = window.scrollY;
+      const shift = Math.max(0, Math.min(metrics.maxShift, y - metrics.start));
+      const translate = shift > 0 ? `translate3d(0, ${shift}px, 0)` : "";
+
+      if (metrics.side === "left") {
+        left.style.transform = translate;
+        right.style.transform = "";
+      } else {
+        left.style.transform = "";
+        right.style.transform = translate;
+      }
+    };
 
     const measure = () => {
-      if (rafId) window.cancelAnimationFrame(rafId);
+      if (measureRafId) window.cancelAnimationFrame(measureRafId);
 
-      rafId = window.requestAnimationFrame(() => {
+      measureRafId = window.requestAnimationFrame(() => {
         if (window.matchMedia("(max-width: 760px)").matches) {
-          setStickySide("none");
+          metricsRef.current = {side: "none", start: 0, maxShift: 0};
+          resetTransforms();
           return;
         }
 
         const leftHeight = left.offsetHeight;
         const rightHeight = right.offsetHeight;
-        const nextSide = getStickySide(leftHeight, rightHeight);
+        const side = getStickySide(leftHeight, rightHeight);
 
-        setStickySide((previous) => (previous === nextSide ? previous : nextSide));
+        if (side === "none") {
+          metricsRef.current = {side: "none", start: 0, maxShift: 0};
+          resetTransforms();
+          return;
+        }
+
+        const shortHeight = side === "left" ? leftHeight : rightHeight;
+        const longHeight = side === "left" ? rightHeight : leftHeight;
+        const stickyTop = getStickyTopOffset();
+        const sectionTop = section.getBoundingClientRect().top + window.scrollY;
+        const start = sectionTop + shortHeight - stickyTop;
+        const maxShift = Math.max(0, longHeight - shortHeight);
+
+        metricsRef.current = {side, start, maxShift};
+        section.dataset.stickySide = side;
+        applyShift();
       });
     };
 
@@ -125,7 +176,17 @@ export default function AboutSplitSection({module}: {module: AboutSplitModule}) 
     });
 
     const onResize = () => measure();
+    const onScroll = () => {
+      if (scrollRafId) return;
+
+      scrollRafId = window.requestAnimationFrame(() => {
+        scrollRafId = 0;
+        applyShift();
+      });
+    };
+
     window.addEventListener("resize", onResize);
+    window.addEventListener("scroll", onScroll, {passive: true});
 
     const mediaQuery = window.matchMedia("(max-width: 760px)");
     const onMediaChange = () => measure();
@@ -136,9 +197,11 @@ export default function AboutSplitSection({module}: {module: AboutSplitModule}) 
     }
 
     return () => {
-      if (rafId) window.cancelAnimationFrame(rafId);
+      if (measureRafId) window.cancelAnimationFrame(measureRafId);
+      if (scrollRafId) window.cancelAnimationFrame(scrollRafId);
       if (resizeObserver) resizeObserver.disconnect();
       window.removeEventListener("resize", onResize);
+      window.removeEventListener("scroll", onScroll);
       window.clearTimeout(delayedMeasureId);
       mediaElements.forEach((element) => {
         element.removeEventListener("load", onMediaReady);
@@ -149,25 +212,15 @@ export default function AboutSplitSection({module}: {module: AboutSplitModule}) 
       } else {
         mediaQuery.removeListener(onMediaChange);
       }
+
+      resetTransforms();
     };
   }, []);
 
   return (
-    <section
-      className={[
-        "aboutModule",
-        "aboutModule--split",
-        stickySide === "left" ? "aboutModule--split--sticky-left" : "",
-        stickySide === "right" ? "aboutModule--split--sticky-right" : "",
-      ].join(" ")}
-    >
+    <section ref={sectionRef} className="aboutModule aboutModule--split">
       <div className="aboutSplit__leftCol">
-        <div
-          ref={leftRef}
-          className={`aboutSplit__leftSticky ${
-            stickySide === "left" && !hasLeftTail ? "is-sticky-full" : ""
-          }`}
-        >
+        <div ref={leftRef} className="aboutSplit__leftSticky aboutSplit__stickyTarget">
           {module.leftTitle ? <h2 className="aboutSplit__sectionTitle">{module.leftTitle}</h2> : null}
 
           {leftParagraphs.length > 0 ? (
@@ -180,60 +233,47 @@ export default function AboutSplitSection({module}: {module: AboutSplitModule}) 
             </div>
           ) : null}
 
-          {hasLeftTail ? (
-            <div
-              className={`aboutSplit__tail aboutSplit__leftTail ${
-                stickySide === "left" ? "is-sticky-tail" : ""
-              }`}
-            >
-              {module.leftMediaFileUrl && leftMediaKind === "video" ? (
-                <video
-                  className={`aboutSplit__media aboutSplit__media--${module.leftMediaFit || "cover"}`}
-                  src={module.leftMediaFileUrl}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                />
-              ) : null}
+          {module.leftMediaFileUrl && leftMediaKind === "video" ? (
+            <video
+              className={`aboutSplit__media aboutSplit__media--${module.leftMediaFit || "cover"}`}
+              src={module.leftMediaFileUrl}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+            />
+          ) : null}
 
-              {module.leftMediaFileUrl && leftMediaKind === "image" ? (
-                <img
-                  className={`aboutSplit__media aboutSplit__media--${module.leftMediaFit || "cover"}`}
-                  src={module.leftMediaFileUrl}
-                  alt={module.leftMediaAlt || ""}
-                  loading="lazy"
-                />
-              ) : null}
+          {module.leftMediaFileUrl && leftMediaKind === "image" ? (
+            <img
+              className={`aboutSplit__media aboutSplit__media--${module.leftMediaFit || "cover"}`}
+              src={module.leftMediaFileUrl}
+              alt={module.leftMediaAlt || ""}
+              loading="lazy"
+            />
+          ) : null}
 
-              {!module.leftMediaFileUrl && module.leftImageUrl ? (
-                <img
-                  className={`aboutSplit__media aboutSplit__media--${module.leftMediaFit || "cover"}`}
-                  src={`${module.leftImageUrl}?w=2200&fit=max&auto=format`}
-                  alt={module.leftMediaAlt || ""}
-                  loading="lazy"
-                />
-              ) : null}
+          {!module.leftMediaFileUrl && module.leftImageUrl ? (
+            <img
+              className={`aboutSplit__media aboutSplit__media--${module.leftMediaFit || "cover"}`}
+              src={`${module.leftImageUrl}?w=2200&fit=max&auto=format`}
+              alt={module.leftMediaAlt || ""}
+              loading="lazy"
+            />
+          ) : null}
 
-              {module.leftCredits ? (
-                <div className="aboutSplit__creditsWrap">
-                  <h3 className="aboutSplit__metaLabel">Créditos</h3>
-                  <p className="aboutSplit__credits">{module.leftCredits}</p>
-                </div>
-              ) : null}
+          {module.leftCredits ? (
+            <div className="aboutSplit__creditsWrap">
+              <h3 className="aboutSplit__metaLabel">Créditos</h3>
+              <p className="aboutSplit__credits">{module.leftCredits}</p>
             </div>
           ) : null}
         </div>
       </div>
 
       <div className="aboutSplit__rightCol">
-        <div
-          ref={rightRef}
-          className={`aboutSplit__rightSticky ${
-            stickySide === "right" && !hasRightTail ? "is-sticky-full" : ""
-          }`}
-        >
+        <div ref={rightRef} className="aboutSplit__rightSticky aboutSplit__stickyTarget">
           {module.rightTitle ? (
             <h2 className="aboutSplit__sectionTitle">{module.rightTitle}</h2>
           ) : null}
@@ -244,42 +284,34 @@ export default function AboutSplitSection({module}: {module: AboutSplitModule}) 
             </p>
           ))}
 
-          {hasRightTail ? (
-            <div
-              className={`aboutSplit__tail aboutSplit__rightTail ${
-                stickySide === "right" ? "is-sticky-tail" : ""
-              }`}
-            >
-              {module.rightMediaFileUrl && rightMediaKind === "video" ? (
-                <video
-                  className={`aboutSplit__media aboutSplit__media--${module.rightMediaFit || "cover"}`}
-                  src={module.rightMediaFileUrl}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                />
-              ) : null}
+          {module.rightMediaFileUrl && rightMediaKind === "video" ? (
+            <video
+              className={`aboutSplit__media aboutSplit__media--${module.rightMediaFit || "cover"}`}
+              src={module.rightMediaFileUrl}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+            />
+          ) : null}
 
-              {module.rightMediaFileUrl && rightMediaKind === "image" ? (
-                <img
-                  className={`aboutSplit__media aboutSplit__media--${module.rightMediaFit || "cover"}`}
-                  src={module.rightMediaFileUrl}
-                  alt={module.rightMediaAlt || ""}
-                  loading="lazy"
-                />
-              ) : null}
+          {module.rightMediaFileUrl && rightMediaKind === "image" ? (
+            <img
+              className={`aboutSplit__media aboutSplit__media--${module.rightMediaFit || "cover"}`}
+              src={module.rightMediaFileUrl}
+              alt={module.rightMediaAlt || ""}
+              loading="lazy"
+            />
+          ) : null}
 
-              {!module.rightMediaFileUrl && module.rightImageUrl ? (
-                <img
-                  className={`aboutSplit__media aboutSplit__media--${module.rightMediaFit || "cover"}`}
-                  src={`${module.rightImageUrl}?w=2200&fit=max&auto=format`}
-                  alt={module.rightMediaAlt || ""}
-                  loading="lazy"
-                />
-              ) : null}
-            </div>
+          {!module.rightMediaFileUrl && module.rightImageUrl ? (
+            <img
+              className={`aboutSplit__media aboutSplit__media--${module.rightMediaFit || "cover"}`}
+              src={`${module.rightImageUrl}?w=2200&fit=max&auto=format`}
+              alt={module.rightMediaAlt || ""}
+              loading="lazy"
+            />
           ) : null}
         </div>
       </div>
