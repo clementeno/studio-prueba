@@ -47,7 +47,7 @@ export default function Header() {
   const [clientPathname, setClientPathname] = useState<string | null>(() =>
     typeof window !== "undefined" ? normalizePathname(window.location.pathname) : null
   );
-  const pathname = normalizePathname(clientPathname || routerPathname || "/");
+  const pathname = normalizePathname(routerPathname || clientPathname || "/");
   const isHome = pathname === "/";
   const isProjectDetail = /^\/proyectos\/[^/]+$/.test(pathname);
   const projectSlug = isProjectDetail ? pathname.split("/")[2] || "" : "";

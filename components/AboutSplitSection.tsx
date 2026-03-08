@@ -97,9 +97,23 @@ export default function AboutSplitSection({module}: {module: AboutSplitModule}) 
       document.fonts.ready.then(() => measure()).catch(() => {});
     }
 
-    const resizeObserver = new ResizeObserver(() => measure());
-    resizeObserver.observe(left);
-    resizeObserver.observe(right);
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(() => measure());
+      resizeObserver.observe(left);
+      resizeObserver.observe(right);
+    }
+
+    const mediaElements = [
+      ...Array.from(left.querySelectorAll<HTMLImageElement | HTMLVideoElement>("img,video")),
+      ...Array.from(right.querySelectorAll<HTMLImageElement | HTMLVideoElement>("img,video")),
+    ];
+    const onMediaReady = () => measure();
+
+    mediaElements.forEach((element) => {
+      element.addEventListener("load", onMediaReady);
+      element.addEventListener("loadeddata", onMediaReady);
+    });
 
     const onResize = () => measure();
     window.addEventListener("resize", onResize);
@@ -114,9 +128,13 @@ export default function AboutSplitSection({module}: {module: AboutSplitModule}) 
 
     return () => {
       if (rafId) window.cancelAnimationFrame(rafId);
-      resizeObserver.disconnect();
+      if (resizeObserver) resizeObserver.disconnect();
       window.removeEventListener("resize", onResize);
       window.clearTimeout(delayedMeasureId);
+      mediaElements.forEach((element) => {
+        element.removeEventListener("load", onMediaReady);
+        element.removeEventListener("loadeddata", onMediaReady);
+      });
       if (typeof mediaQuery.removeEventListener === "function") {
         mediaQuery.removeEventListener("change", onMediaChange);
       } else {
