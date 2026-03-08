@@ -44,10 +44,9 @@ function normalizePathname(path: string) {
 
 export default function Header() {
   const routerPathname = usePathname();
-  const [clientPathname, setClientPathname] = useState<string | null>(() =>
-    typeof window !== "undefined" ? normalizePathname(window.location.pathname) : null
-  );
-  const pathname = normalizePathname(routerPathname || clientPathname || "/");
+  const runtimePathname =
+    typeof window !== "undefined" ? normalizePathname(window.location.pathname) : "";
+  const pathname = normalizePathname(runtimePathname || routerPathname || "/");
   const isHome = pathname === "/";
   const isProjectDetail = /^\/proyectos\/[^/]+$/.test(pathname);
   const projectSlug = isProjectDetail ? pathname.split("/")[2] || "" : "";
@@ -56,16 +55,6 @@ export default function Header() {
   const [projectPastHero, setProjectPastHero] = useState(false);
   const [projectLabelState, setProjectLabelState] =
     useState<ProjectLabelState | null>(null);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    setClientPathname(normalizePathname(window.location.pathname));
-  }, []);
-
-  useEffect(() => {
-    if (!routerPathname) return;
-    setClientPathname(normalizePathname(routerPathname));
-  }, [routerPathname]);
 
   useEffect(() => {
     let lastY = window.scrollY;
