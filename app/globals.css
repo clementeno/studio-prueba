@@ -32,13 +32,13 @@ body {
   --bg-about: #fff;
   --bg-contacto: #fff;
   --bg-default: #fff;
-  --footer-fg-home: #111;
+  --footer-fg-home: #ffffff;
   --footer-fg-projects: #111;
   --footer-fg-project-detail: #111;
   --footer-fg-about: #111;
   --footer-fg-contacto: #111;
   --footer-fg-default: #111;
-  --footer-border-home: rgba(0, 0, 0, 0.08);
+  --footer-border-home: rgba(255, 255, 255, 0.08);
   --footer-border-projects: rgba(0, 0, 0, 0.08);
   --footer-border-project-detail: rgba(0, 0, 0, 0.08);
   --footer-border-about: rgba(0, 0, 0, 0.08);
