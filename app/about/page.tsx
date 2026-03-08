@@ -93,12 +93,12 @@ export default async function AboutPage() {
     {next: {revalidate}}
   );
 
-  const pageTitle = aboutPage?.pageTitle || "About";
+  const pageTitle = String(aboutPage?.pageTitle || "").trim();
   const modules = aboutPage?.modules || [];
 
   return (
     <div className="page aboutPage">
-      <h1 className="h1 aboutPage__title">{pageTitle}</h1>
+      {pageTitle ? <h1 className="h1 aboutPage__title">{pageTitle}</h1> : null}
 
       {modules.length === 0 ? (
         <p className="p">Configura el documento About Page en Sanity para cargar contenido.</p>

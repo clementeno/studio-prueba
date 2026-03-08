@@ -215,14 +215,14 @@ export default function ProjectsGallery({
     );
   }, [activeCategory, projects]);
 
-  const pageTitle = settings?.pageTitle?.trim() || "Proyectos";
+  const pageTitle = settings?.pageTitle?.trim() || "";
   const casesLabel = settings?.casesLabel?.trim() || "Casos de estudio";
   const archivesLabel = settings?.archivesLabel?.trim() || "Archivos";
 
   return (
     <section className="projectsGallery">
       <div className="projectsGallery__top">
-        <h1 className="h1 projectsGallery__title">{pageTitle}</h1>
+        {pageTitle ? <h1 className="h1 projectsGallery__title">{pageTitle}</h1> : null}
 
         <div className="projectsMode" role="tablist" aria-label="Modalidad de proyectos">
           <button
