@@ -248,6 +248,181 @@ main,
   opacity: 0.9;
 }
 
+.aboutPage {
+  display: grid;
+  gap: 30px;
+  align-content: start;
+}
+
+.aboutPage__title {
+  margin-bottom: 0;
+}
+
+.aboutModule {
+  display: grid;
+  gap: 12px;
+}
+
+.aboutModule--split {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 26px;
+  align-items: start;
+}
+
+.aboutSplit__leftCol {
+  grid-column: 1 / span 2;
+}
+
+.aboutSplit__leftSticky {
+  position: sticky;
+  top: calc(var(--headerH) + 18px);
+  display: grid;
+  gap: 22px;
+  max-height: calc(100svh - var(--headerH) - 22px);
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.aboutSplit__leftBody {
+  display: grid;
+  gap: 20px;
+}
+
+.aboutSplit__sectionTitle {
+  margin: 0;
+  color: #8a8a8a;
+  font-size: clamp(0.92rem, 0.16vw + 0.9rem, 1rem);
+  font-weight: 600;
+}
+
+.aboutSplit__lead {
+  margin: 0;
+  font-size: clamp(1.5rem, 1vw + 1.2rem, 2.2rem);
+  line-height: 1.1;
+  letter-spacing: -0.012em;
+}
+
+.aboutSplit__creditsWrap {
+  display: grid;
+  gap: 6px;
+}
+
+.aboutSplit__metaLabel {
+  margin: 0;
+  color: #8a8a8a;
+  font-size: clamp(0.9rem, 0.14vw + 0.88rem, 0.98rem);
+  font-weight: 600;
+}
+
+.aboutSplit__credits {
+  margin: 0;
+  white-space: pre-line;
+  font-size: clamp(0.96rem, 0.16vw + 0.93rem, 1.08rem);
+  line-height: 1.34;
+}
+
+.aboutSplit__rightCol {
+  grid-column: 3 / span 2;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.aboutSplit__media {
+  width: 100%;
+  min-height: clamp(380px, 68svh, 920px);
+  display: block;
+  border-radius: 0;
+  background: #ececec;
+}
+
+.aboutSplit__media--cover {
+  object-fit: cover;
+}
+
+.aboutSplit__media--contain {
+  object-fit: contain;
+  background: #f6f6f6;
+}
+
+.aboutSplit__body {
+  margin: 0;
+  white-space: pre-line;
+  font-size: clamp(1rem, 0.2vw + 0.95rem, 1.14rem);
+  line-height: 1.62;
+}
+
+.aboutModule--fullMedia {
+  gap: 10px;
+}
+
+.aboutFullMedia__label {
+  margin: 0;
+  color: #8a8a8a;
+  font-size: clamp(0.92rem, 0.16vw + 0.9rem, 1rem);
+  font-weight: 600;
+}
+
+.aboutFullMedia__frame {
+  width: 100%;
+  border-radius: 0;
+  overflow: hidden;
+  background: #ececec;
+}
+
+.aboutFullMedia__asset {
+  width: 100%;
+  display: block;
+}
+
+.aboutFullMedia__caption {
+  margin: 0;
+  color: #666;
+  font-size: clamp(0.82rem, 0.15vw + 0.79rem, 0.94rem);
+  line-height: 1.45;
+}
+
+.contactPage {
+  display: grid;
+  gap: 20px;
+}
+
+.contactPage__intro {
+  display: grid;
+  gap: 12px;
+}
+
+.contactPage__items {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.contactPage__item {
+  display: grid;
+  gap: 3px;
+}
+
+.contactPage__itemLabel {
+  margin: 0;
+  color: #8a8a8a;
+  font-size: clamp(0.9rem, 0.14vw + 0.88rem, 0.98rem);
+  font-weight: 600;
+}
+
+.contactPage__itemValue {
+  margin: 0;
+  color: #111;
+  font-size: clamp(1rem, 0.16vw + 0.96rem, 1.12rem);
+  line-height: 1.35;
+  text-decoration: none;
+}
+
+.contactPage__itemValue:hover {
+  text-decoration: underline;
+}
+
 .grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -771,6 +946,22 @@ main,
     gap: 28px;
   }
 
+  .aboutModule--split {
+    gap: 20px;
+  }
+
+  .aboutSplit__leftSticky {
+    top: calc(var(--headerH) + 14px);
+  }
+
+  .aboutSplit__lead {
+    font-size: clamp(1.3rem, 0.7vw + 1.12rem, 1.8rem);
+  }
+
+  .contactPage__items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .projectInfoGrid {
     padding-top: 10px;
     gap: 16px;
@@ -836,6 +1027,46 @@ main,
 
   .projectsPage {
     padding-top: calc(var(--headerH) + 14px);
+  }
+
+  .aboutPage {
+    gap: 22px;
+  }
+
+  .aboutModule--split {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .aboutSplit__leftCol,
+  .aboutSplit__rightCol {
+    grid-column: 1 / -1;
+  }
+
+  .aboutSplit__leftSticky {
+    position: static;
+    gap: 16px;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .aboutSplit__leftBody {
+    gap: 14px;
+  }
+
+  .aboutSplit__lead {
+    font-size: clamp(1.14rem, 0.8vw + 1.04rem, 1.42rem);
+    line-height: 1.16;
+  }
+
+  .aboutSplit__media {
+    min-height: 0;
+    aspect-ratio: 4 / 5;
+  }
+
+  .contactPage__items {
+    grid-template-columns: 1fr;
   }
 
   .projectsGallery {
