@@ -4,7 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 
 export const metadata = {
-  title: "MásMenos Studio",
+  title: "Vicente Acuña",
   description: "Portfolio studio site",
 };
 

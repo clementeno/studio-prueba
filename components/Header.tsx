@@ -220,7 +220,7 @@ export default function Header() {
       <header className={headerClass}>
         <div className="siteHeader__inner">
           <Link className="brand" href="/">
-            MÁSMENOS STUDIO
+            Vicente Acuña
           </Link>
 
           <nav className="nav">

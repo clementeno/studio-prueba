@@ -2,14 +2,14 @@
 
 import {useEffect, useMemo, useState} from "react";
 
-const INTRO_STORAGE_KEY = "home_intro_seen_v3";
+const INTRO_STORAGE_KEY = "home_intro_seen_v4";
 const TOTAL_DURATION_MS = 2800;
 const START_DELAY_MS = 220;
 const HOLD_AFTER_TYPING_MS = 650;
 const FADE_OUT_MS = 700;
 
 export default function HomeIntroOverlay() {
-  const fullText = useMemo(() => "MÁS / MENOS / STUDIO", []);
+  const fullText = useMemo(() => "Vicente Acuña", []);
   const [visible, setVisible] = useState(false);
   const [closing, setClosing] = useState(false);
   const [typedText, setTypedText] = useState("");
